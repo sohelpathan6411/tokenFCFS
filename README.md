@@ -1,5 +1,5 @@
 ``FOLDER STRUCTURE``
-
+```bash
 |-- lib
 |   |-- screens
 |   |   |-- admin
@@ -23,3 +23,4 @@
 |-- utils
 |   |-- constants.dart
 |-- main.dart
+```
