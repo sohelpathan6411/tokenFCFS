@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "1040449286900",
+    "project_id": "tokenfcfs",
+    "storage_bucket": "tokenfcfs.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1040449286900:android:103dffa2acf2a78089e4a1",
+        "android_client_info": {
+          "package_name": "com.tokenfcfs.app.tokenfcfs"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBa7ZaI_t8z10SAY2SXsuleZD1hiNVlZ3o"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
