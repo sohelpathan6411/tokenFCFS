@@ -1,16 +1,12 @@
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-
+import '../../services/session_service.dart';
 import 'admin_login_screen.dart';
+import 'manage_services/service_management_screen.dart';
+import 'manage_tokens/token_management_screen.dart';
+import 'manage_users/user_management_screen.dart';
 
 class AdminDashboardScreen extends StatelessWidget {
   const AdminDashboardScreen({super.key});
-
-  Future<void> _logout() async {
-    // Clear session information
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    await prefs.clear();
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -19,14 +15,17 @@ class AdminDashboardScreen extends StatelessWidget {
         title: const Text('Admin Dashboard'),
         actions: [
           IconButton(
-            icon: Icon(Icons.logout),
+            icon: const Icon(Icons.logout),
             onPressed: () async {
               // Perform logout action
-              await _logout();
+              await SessionService().logout();
               // Navigate to LoginScreen
+              // ignore: use_build_context_synchronously
+
               Navigator.pushReplacement(
                 context,
-                MaterialPageRoute(builder: (context) => AdminLoginScreen()),
+                MaterialPageRoute(
+                    builder: (context) => const AdminLoginScreen()),
               );
             },
           ),
@@ -34,34 +33,92 @@ class AdminDashboardScreen extends StatelessWidget {
       ),
       body: Center(
         child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
+          mainAxisAlignment: MainAxisAlignment.start,
           children: <Widget>[
-            ElevatedButton(
-              onPressed: () {
-                // Navigate to Manage Users screen
-              },
-              child: const Text('Manage Users'),
+            const SizedBox(
+              height: 30,
             ),
-            ElevatedButton(
-              onPressed: () {
-                // Navigate to Manage Services screen
-              },
-              child: const Text('Manage Services'),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                InkWell(
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) => const UserManagementScreen()),
+                    );
+                  },
+                  child: optionsMenu('Manage Users', context),
+                ),
+                InkWell(
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) =>
+                              const ServiceManagementScreen()),
+                    );
+                  },
+                  child: optionsMenu('Manage Services', context),
+                ),
+              ],
             ),
-            ElevatedButton(
-              onPressed: () {
-                // Navigate to Manage Tokens screen
-              },
-              child: const Text('Manage Tokens'),
-            ),
-            ElevatedButton(
-              onPressed: () {
-                // Navigate to Visualization Reports screen
-              },
-              child: const Text('Visualization Reports'),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                InkWell(
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) => const TokenManagementScreen()),
+                    );
+                  },
+                  child: optionsMenu('Manage Tokens', context),
+                ),
+                InkWell(
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) => const UserManagementScreen()),
+                    );
+                  },
+                  child: optionsMenu('Reports', context),
+                ),
+              ],
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget optionsMenu(title, context) {
+    return Padding(
+      padding: const EdgeInsets.all(15.0),
+      child: Container(
+        width: MediaQuery.of(context).size.width / 2.5,
+        height: 100,
+        decoration: BoxDecoration(
+            color: Theme.of(context).primaryColorLight,
+            border: Border.all(
+              width: 1,
+              color: Theme.of(context).primaryColor,
+            ),
+            borderRadius: const BorderRadius.all(Radius.circular(12))),
+        child: Center(
+            child: Padding(
+          padding: const EdgeInsets.all(12.0),
+          child: Text(
+            title,
+            style: TextStyle(
+                fontWeight: FontWeight.bold,
+                color: Colors.black54,
+                fontSize: 16),
+          ),
+        )),
       ),
     );
   }

@@ -1,8 +1,11 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_otp_text_field/flutter_otp_text_field.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
+import '../../services/session_service.dart';
+import '../../widgets/custom_button.dart';
+import '../../widgets/custom_text_field.dart';
 import 'admin_dashboard_screen.dart';
 
 class AdminLoginScreen extends StatefulWidget {
@@ -18,8 +21,7 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
   String selectLoginRole = 'admin';
 
   Future<void> _autoLogin() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    String? lastLoginRole = await _getLastLoginRole();
+    String? lastLoginRole = await SessionService().getLastLoginRole();
     if (lastLoginRole != null) {
       // Perform auto-login based on the last logged-in role
       switch (lastLoginRole) {
@@ -65,6 +67,38 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
 
     smsSent(String verId, [int? forceResend]) {
       _verificationId = verId;
+      // ignore: use_build_context_synchronously
+      showDialog(
+        context: context,
+        builder: (context) {
+          return AlertDialog(
+            contentPadding: const EdgeInsets.all(7),
+            title: const Text(
+              'Enter OTP',
+              style: TextStyle(
+                fontSize: 25,
+                fontWeight: FontWeight.bold,
+                color: Colors.black54,
+              ),
+            ),
+            content: SizedBox(
+              width: MediaQuery.of(context).size.width,
+              height: 200,
+              child: OtpTextField(
+                numberOfFields: 6,
+                showFieldAsBox: true,
+                textStyle: const TextStyle(fontSize: 17),
+                onSubmit: (pin) {
+                  if (pin.length == 6) {
+                    _signInWithOTP(pin);
+                    Navigator.pop(context);
+                  }
+                },
+              ),
+            ),
+          );
+        },
+      );
     }
 
     autoTimeout(String verId) {
@@ -87,9 +121,9 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
 
     await FirebaseAuth.instance.signInWithCredential(authCreds);
     // Store session information
-    await _storeSession();
+    await SessionService().storeSession(selectLoginRole);
     // Navigate to the appropriate dashboard based on the last login role
-    String? lastLoginRole = await _getLastLoginRole();
+    String? lastLoginRole = await SessionService().getLastLoginRole();
     if (lastLoginRole != null) {
       switch (lastLoginRole) {
         case 'admin':
@@ -116,18 +150,6 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
     }
   }
 
-  Future<void> _storeSession() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    await prefs.setString(
-        'lastLoginRole', 'admin'); // Store last login role as admin
-    // Add more session information as needed
-  }
-
-  Future<String?> _getLastLoginRole() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    return prefs.getString('lastLoginRole'); // Default role is admin
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -135,108 +157,71 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
       body: Center(
         child: Padding(
           padding: const EdgeInsets.all(20.0),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: <Widget>[
-              const Text(
-                "Login as",
-                style: TextStyle(fontSize: 25, fontWeight: FontWeight.bold),
-              ),
-              Row(
-                children: [
-                  loginAsWidget(
-                    'admin',
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: <Widget>[
+                const Text(
+                  "Login",
+                  style: TextStyle(
+                    fontSize: 25,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.black54,
                   ),
-                  loginAsWidget(
-                    'operator',
-                  ),
-                  loginAsWidget(
-                    'user',
-                  ),
-                ],
-              ),
-              TextField(
-                keyboardType: TextInputType.phone,
-                decoration:
-                    const InputDecoration(labelText: 'Enter Phone Number'),
-                onChanged: (value) {
-                  setState(() {
-                    _phoneNumber = value;
-                  });
-                },
-              ),
-              const SizedBox(height: 20),
-              ElevatedButton(
-                onPressed: () async {
-                  await _verifyPhoneNumber();
-                  // ignore: use_build_context_synchronously
-                  showDialog(
-                    context: context,
-                    builder: (context) {
-                      return AlertDialog(
-                        contentPadding: const EdgeInsets.all(7),
-                        title: const Text('Enter OTP'),
-                        content: SizedBox(
-                          width: MediaQuery.of(context).size.width,
-                          height: 200,
-                          child: OtpTextField(
-                            numberOfFields: 6,
-                            showFieldAsBox: true,
-                            textStyle: const TextStyle(fontSize: 17),
-                            onSubmit: (pin) {
-                              if (pin.length == 6) {
-                                _signInWithOTP(pin);
-                                Navigator.pop(context);
-                              }
-                            },
-                          ),
-                        ),
-                      );
-                    },
-                  );
-                },
-                child: const Text('Verify Phone Number'),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget loginAsWidget(
-    String role,
-  ) {
-    return InkWell(
-      onTap: () async {
-        setState(() {
-          selectLoginRole = role;
-        });
-      },
-      child: Row(
-        children: [
-          selectLoginRole == role
-              ? Icon(
-                  Icons.radio_button_checked,
-                  color: Theme.of(context).primaryColor,
-                  size: 18,
-                )
-              : const Icon(
-                  Icons.radio_button_off,
-                  size: 18,
                 ),
-          Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: Text(
-              role,
-              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w400),
+                const SizedBox(
+                  height: 30,
+                ),
+                CustomTextField(
+                  keyboardType: TextInputType.phone,
+                  label: 'Enter Phone Number',
+                  maxLength: 10,
+                  onChanged: (value) {
+                    setState(() {
+                      _phoneNumber = value;
+                    });
+                  },
+                ),
+                const SizedBox(height: 20),
+                CustomButton(
+                  text: 'Verify Phone Number',
+                  onPressed: () async {
+                    if (await FirebaseFirestore.instance
+                        .collection('users')
+                        .where("mobile", isEqualTo: _phoneNumber)
+                        .where("role", isEqualTo: "admin")
+                        .get()
+                        .then((value) => value.size > 0 ? true : false)) {
+                      setState(() {
+                        selectLoginRole = 'admin';
+                      });
+                    } else if (await FirebaseFirestore.instance
+                        .collection('users')
+                        .where("mobile", isEqualTo: _phoneNumber)
+                        .where("role", isEqualTo: "operator")
+                        .get()
+                        .then((value) => value.size > 0 ? true : false)) {
+                      setState(() {
+                        selectLoginRole = 'operator';
+                      });
+                    } else if (await FirebaseFirestore.instance
+                        .collection('users')
+                        .where("mobile", isEqualTo: _phoneNumber)
+                        .where("role", isEqualTo: "user")
+                        .get()
+                        .then((value) => value.size > 0 ? true : false)) {
+                      setState(() {
+                        selectLoginRole = 'user';
+                      });
+                    }
+                    await _verifyPhoneNumber();
+                  },
+                ),
+              ],
             ),
           ),
-          const SizedBox(
-            width: 15,
-          ),
-        ],
+        ),
       ),
     );
   }
