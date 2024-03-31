@@ -11,10 +11,10 @@ Mobile number 1234500001,  1234500002, 1234500003, 1234500004, 1234500005, 12345
 
 User - U can actually register with any mobile number with 10 digits from india OR can use few numbers from above list
 
-
+1 | 2
 Firestore Collections
-![image](https://github.com/sohelpathan6411/tokenFCFS/assets/36534117/1a6469c7-191e-4b7e-a894-9ffcc57e4f84)
-
+![image](https://github.com/sohelpathan6411/tokenFCFS/assets/36534117/1a6469c7-191e-4b7e-a894-9ffcc57e4f84)  | 
+![image](https://github.com/sohelpathan6411/tokenFCFS/assets/36534117/3c9fdccf-6564-4a4f-bd94-312ad1409a98)
 
 1 | 2 | 3
 :-------------------------:|:-------------------------:|:-------------------------:
