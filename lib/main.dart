@@ -24,6 +24,17 @@ class MyApp extends StatelessWidget {
       title: 'Token Management System',
       theme: ThemeData(
         primarySwatch: Colors.cyan,
+        appBarTheme: AppBarTheme(
+            foregroundColor: Theme.of(context).primaryColorDark,
+            backgroundColor: Colors.grey.shade100,
+            actionsIconTheme: IconThemeData(
+              color: Theme.of(context).primaryColorDark,
+            ),
+            titleTextStyle: TextStyle(
+                color: Theme.of(context).primaryColorDark,
+                fontWeight: FontWeight.w400,
+                fontSize: 15),
+            elevation: 0),
         visualDensity: VisualDensity.adaptivePlatformDensity,
       ),
       home: const AdminLoginScreen(),

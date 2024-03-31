@@ -32,102 +32,105 @@ class UserManagementScreen extends StatelessWidget {
                       padding: const EdgeInsets.all(4.0),
                       child: Card(
                         elevation: 2,
-                        child: ListTile(
-                          tileColor: Colors.white,
-                          title: Row(
-                            children: [
-                              const Icon(
-                                Icons.person,
-                                size: 14,
-                                color: Colors.black87,
-                              ),
-                              const SizedBox(
-                                width: 10,
-                              ),
-                              Text(
-                                user['name'],
-                                style: const TextStyle(
-                                  fontSize: 17,
-                                  fontWeight: FontWeight.w500,
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 8),
+                          child: ListTile(
+                            tileColor: Colors.white,
+                            title: Row(
+                              children: [
+                                const Icon(
+                                  Icons.person,
+                                  size: 14,
                                   color: Colors.black87,
                                 ),
-                              ),
-                              Text(
-                                " (${user['role']})",
-                                style: const TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w400,
-                                  color: Colors.black54,
+                                const SizedBox(
+                                  width: 10,
                                 ),
-                              ),
-                            ],
-                          ),
-                          subtitle: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              const SizedBox(
-                                height: 10,
-                              ),
-                              Row(
-                                children: [
-                                  const Icon(
-                                    Icons.phone,
-                                    size: 14,
+                                Text(
+                                  user['name'],
+                                  style: const TextStyle(
+                                    fontSize: 17,
+                                    fontWeight: FontWeight.w500,
+                                    color: Colors.black87,
                                   ),
-                                  const SizedBox(
-                                    width: 10,
+                                ),
+                                Text(
+                                  " (${user['role']})",
+                                  style: const TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w400,
+                                    color: Colors.black54,
                                   ),
-                                  Text(user['mobile']),
-                                  const SizedBox(
-                                    width: 10,
-                                  ),
-                                  Container(
-                                    decoration: BoxDecoration(
-                                        color: user['status'] == "active"
-                                            ? Colors.green
-                                            : Colors.red.shade800,
-                                        borderRadius: const BorderRadius.all(
-                                            Radius.circular(12))),
-                                    child: Padding(
-                                      padding: const EdgeInsets.symmetric(
-                                          horizontal: 15, vertical: 3),
-                                      child: Text(
-                                        user['status'],
-                                        style: const TextStyle(
-                                          fontSize: 10,
-                                          fontWeight: FontWeight.w600,
-                                          color: Colors.white,
+                                ),
+                              ],
+                            ),
+                            subtitle: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const SizedBox(
+                                  height: 10,
+                                ),
+                                Row(
+                                  children: [
+                                    const Icon(
+                                      Icons.phone,
+                                      size: 14,
+                                    ),
+                                    const SizedBox(
+                                      width: 10,
+                                    ),
+                                    Text(user['mobile']),
+                                    const SizedBox(
+                                      width: 10,
+                                    ),
+                                    Container(
+                                      decoration: BoxDecoration(
+                                          color: user['status'] == "active"
+                                              ? Colors.green
+                                              : Colors.red.shade800,
+                                          borderRadius: const BorderRadius.all(
+                                              Radius.circular(12))),
+                                      child: Padding(
+                                        padding: const EdgeInsets.symmetric(
+                                            horizontal: 15, vertical: 3),
+                                        child: Text(
+                                          user['status'],
+                                          style: const TextStyle(
+                                            fontSize: 10,
+                                            fontWeight: FontWeight.w600,
+                                            color: Colors.white,
+                                          ),
                                         ),
                                       ),
                                     ),
-                                  ),
-                                ],
-                              ),
-                              const SizedBox(
-                                height: 5,
-                              ),
-                            ],
-                          ),
-                          trailing: IconButton(
-                            icon: Icon(
-                              Icons.delete,
-                              color: Colors.red.shade800,
+                                  ],
+                                ),
+                                const SizedBox(
+                                  height: 5,
+                                ),
+                              ],
                             ),
-                            onPressed: () async {
-                              await FirebaseFirestore.instance
-                                  .collection('users')
-                                  .doc(user.id)
-                                  .delete();
+                            trailing: IconButton(
+                              icon: Icon(
+                                Icons.delete,
+                                color: Colors.red.shade800,
+                              ),
+                              onPressed: () async {
+                                await FirebaseFirestore.instance
+                                    .collection('users')
+                                    .doc(user.id)
+                                    .delete();
+                              },
+                            ),
+                            onTap: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                    builder: (context) =>
+                                        AddEditUserScreen(user: user)),
+                              );
                             },
                           ),
-                          onTap: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                  builder: (context) =>
-                                      AddEditUserScreen(user: user)),
-                            );
-                          },
                         ),
                       ),
                     );

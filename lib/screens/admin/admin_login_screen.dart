@@ -2,11 +2,15 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_otp_text_field/flutter_otp_text_field.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 
 import '../../services/session_service.dart';
 import '../../widgets/custom_button.dart';
 import '../../widgets/custom_text_field.dart';
+import '../operator/operator_dashboard_screen.dart';
+import '../user/user_dashboard_screen.dart';
 import 'admin_dashboard_screen.dart';
+import 'register_user_screen.dart';
 
 class AdminLoginScreen extends StatefulWidget {
   const AdminLoginScreen({super.key});
@@ -18,36 +22,39 @@ class AdminLoginScreen extends StatefulWidget {
 class _AdminLoginScreenState extends State<AdminLoginScreen> {
   String? _phoneNumber;
   String? _verificationId;
-  String selectLoginRole = 'admin';
+  String selectLoginRole = 'user';
 
   Future<void> _autoLogin() async {
     String? lastLoginRole = await SessionService().getLastLoginRole();
     if (lastLoginRole != null) {
-      // Perform auto-login based on the last logged-in role
-      switch (lastLoginRole) {
-        case 'admin':
-          // ignore: use_build_context_synchronously
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(
-                builder: (context) => const AdminDashboardScreen()),
-          );
-          break;
-        case 'operator':
-          // ignore: use_build_context_synchronously
-          /*  Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(builder: (context) => OperatorDashboardScreen()),
-          ); */
-          break;
-        case 'user':
-          // ignore: use_build_context_synchronously
-          /* Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(builder: (context) => UserDashboardScreen()),
-          ); */
-          break;
-      }
+      roleBaseNavigation(lastLoginRole);
+    }
+  }
+
+  roleBaseNavigation(lastLoginRole) {
+    switch (lastLoginRole) {
+      case 'admin':
+        // ignore: use_build_context_synchronously
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => const AdminDashboardScreen()),
+        );
+        break;
+      case 'operator':
+        // ignore: use_build_context_synchronously
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+              builder: (context) => const OperatorDashboardScreen()),
+        );
+        break;
+      case 'user':
+        // ignore: use_build_context_synchronously
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => const UserDashboardScreen()),
+        );
+        break;
     }
   }
 
@@ -73,25 +80,25 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
         builder: (context) {
           return AlertDialog(
             contentPadding: const EdgeInsets.all(7),
-            title: const Text(
+            title: Text(
               'Enter OTP',
               style: TextStyle(
                 fontSize: 25,
                 fontWeight: FontWeight.bold,
-                color: Colors.black54,
+                color: Theme.of(context).primaryColorDark,
               ),
             ),
             content: SizedBox(
               width: MediaQuery.of(context).size.width,
-              height: 200,
+              height: 160,
               child: OtpTextField(
                 numberOfFields: 6,
                 showFieldAsBox: true,
+                clearText: true,
                 textStyle: const TextStyle(fontSize: 17),
                 onSubmit: (pin) {
                   if (pin.length == 6) {
                     _signInWithOTP(pin);
-                    Navigator.pop(context);
                   }
                 },
               ),
@@ -116,62 +123,88 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
   }
 
   Future<void> _signInWithOTP(String smsCode) async {
+    Fluttertoast.showToast(
+        msg: "Validating...",
+        toastLength: Toast.LENGTH_SHORT,
+        gravity: ToastGravity.TOP,
+        timeInSecForIosWeb: 1,
+        backgroundColor:
+            // ignore: use_build_context_synchronously
+            Theme.of(context).primaryColor,
+        textColor: Colors.white,
+        fontSize: 16.0);
     AuthCredential authCreds = PhoneAuthProvider.credential(
         verificationId: _verificationId!, smsCode: smsCode);
 
-    await FirebaseAuth.instance.signInWithCredential(authCreds);
-    // Store session information
-    await SessionService().storeSession(selectLoginRole);
-    // Navigate to the appropriate dashboard based on the last login role
-    String? lastLoginRole = await SessionService().getLastLoginRole();
-    if (lastLoginRole != null) {
-      switch (lastLoginRole) {
-        case 'admin':
-          // ignore: use_build_context_synchronously
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(
-                builder: (context) => const AdminDashboardScreen()),
-          );
-          break;
-        case 'operator':
-          /* Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (context) => OperatorDashboardScreen()),
-        ); */
-          break;
-        case 'user':
-          /* Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (context) => UserDashboardScreen()),
-        ); */
-          break;
+    try {
+      await FirebaseAuth.instance.signInWithCredential(authCreds);
+      // Store session information
+      if (selectLoginRole != "newuser") {
+        await SessionService().storeSession(selectLoginRole, _phoneNumber);
       }
+
+      // Navigate to the appropriate dashboard based on the last login role
+      String? lastLoginRole = await SessionService().getLastLoginRole();
+      if (lastLoginRole != null) {
+        Navigator.pop(context);
+        roleBaseNavigation(lastLoginRole);
+      } else {
+        Navigator.pop(context);
+        // ignore: use_build_context_synchronously
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+              builder: (context) =>
+                  RegisterUserScreen(mobileNumber: _phoneNumber)),
+        );
+      }
+    } catch (e) {
+      Fluttertoast.showToast(
+          msg: "Enter valid OTP Or Please request another OTP",
+          toastLength: Toast.LENGTH_SHORT,
+          gravity: ToastGravity.TOP,
+          timeInSecForIosWeb: 1,
+          backgroundColor:
+              // ignore: use_build_context_synchronously
+              Colors.red.shade800,
+          textColor: Colors.white,
+          fontSize: 16.0);
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Admin Login')),
+      appBar: AppBar(title: const Text('Login')),
       body: Center(
         child: Padding(
-          padding: const EdgeInsets.all(20.0),
+          padding: const EdgeInsets.all(30.0),
           child: SingleChildScrollView(
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: <Widget>[
-                const Text(
-                  "Login",
+                Text(
+                  "Welcome!",
                   style: TextStyle(
-                    fontSize: 25,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.black54,
+                    fontSize: 40,
+                    fontWeight: FontWeight.w400,
+                    color: Theme.of(context).primaryColorDark,
                   ),
                 ),
                 const SizedBox(
-                  height: 30,
+                  height: 20,
+                ),
+                const Text(
+                  "Manage services, tokens, users and much more",
+                  style: TextStyle(
+                    fontSize: 25,
+                    fontWeight: FontWeight.w300,
+                    color: Colors.grey,
+                  ),
+                ),
+                const SizedBox(
+                  height: 40,
                 ),
                 CustomTextField(
                   keyboardType: TextInputType.phone,
@@ -184,39 +217,76 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
                   },
                 ),
                 const SizedBox(height: 20),
-                CustomButton(
-                  text: 'Verify Phone Number',
-                  onPressed: () async {
-                    if (await FirebaseFirestore.instance
-                        .collection('users')
-                        .where("mobile", isEqualTo: _phoneNumber)
-                        .where("role", isEqualTo: "admin")
-                        .get()
-                        .then((value) => value.size > 0 ? true : false)) {
-                      setState(() {
-                        selectLoginRole = 'admin';
-                      });
-                    } else if (await FirebaseFirestore.instance
-                        .collection('users')
-                        .where("mobile", isEqualTo: _phoneNumber)
-                        .where("role", isEqualTo: "operator")
-                        .get()
-                        .then((value) => value.size > 0 ? true : false)) {
-                      setState(() {
-                        selectLoginRole = 'operator';
-                      });
-                    } else if (await FirebaseFirestore.instance
-                        .collection('users')
-                        .where("mobile", isEqualTo: _phoneNumber)
-                        .where("role", isEqualTo: "user")
-                        .get()
-                        .then((value) => value.size > 0 ? true : false)) {
-                      setState(() {
-                        selectLoginRole = 'user';
-                      });
-                    }
-                    await _verifyPhoneNumber();
-                  },
+                SizedBox(
+                  width: MediaQuery.of(context).size.width,
+                  child: CustomButton(
+                    text: 'Verify Phone Number',
+                    onPressed: () async {
+                      if ((_phoneNumber ?? "").length == 10) {
+                        Fluttertoast.showToast(
+                            msg: "Sending OTP...",
+                            toastLength: Toast.LENGTH_SHORT,
+                            gravity: ToastGravity.TOP,
+                            timeInSecForIosWeb: 1,
+                            backgroundColor:
+                                // ignore: use_build_context_synchronously
+                                Theme.of(context).primaryColorDark,
+                            textColor: Colors.white,
+                            fontSize: 16.0);
+
+                        if (await FirebaseFirestore.instance
+                            .collection('users')
+                            .where("mobile", isEqualTo: _phoneNumber)
+                            .where("role", isEqualTo: "admin")
+                            .get()
+                            .then((value) => value.size > 0 ? true : false)) {
+                          setState(() {
+                            selectLoginRole = 'admin';
+                          });
+                          await _verifyPhoneNumber();
+                        } else if (await FirebaseFirestore.instance
+                            .collection('users')
+                            .where("mobile", isEqualTo: _phoneNumber)
+                            .where("role", isEqualTo: "operator")
+                            .get()
+                            .then((value) => value.size > 0 ? true : false)) {
+                          setState(() {
+                            selectLoginRole = 'operator';
+                          });
+                          await _verifyPhoneNumber();
+                        } else if (await FirebaseFirestore.instance
+                            .collection('users')
+                            .where("mobile", isEqualTo: _phoneNumber)
+                            .where("role", isEqualTo: "user")
+                            .get()
+                            .then((value) => value.size > 0 ? true : false)) {
+                          setState(() {
+                            selectLoginRole = 'user';
+                          });
+                          await _verifyPhoneNumber();
+                        } else {
+                          setState(() {
+                            selectLoginRole = 'newuser';
+                          });
+                          await _verifyPhoneNumber();
+                        }
+                      } else {
+                        Fluttertoast.showToast(
+                            msg: "10 Digits number is required",
+                            toastLength: Toast.LENGTH_SHORT,
+                            gravity: ToastGravity.TOP,
+                            timeInSecForIosWeb: 1,
+                            backgroundColor:
+                                // ignore: use_build_context_synchronously
+                                Colors.red.shade800,
+                            textColor: Colors.white,
+                            fontSize: 16.0);
+                      }
+                    },
+                  ),
+                ),
+                const SizedBox(
+                  height: 40,
                 ),
               ],
             ),

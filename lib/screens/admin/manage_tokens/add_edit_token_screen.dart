@@ -1,7 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/services.dart';
+import 'package:fluttertoast/fluttertoast.dart';
+import 'package:tokenfcfs/widgets/custom_button.dart';
 import 'package:tokenfcfs/widgets/custom_text_field.dart';
+
+import '../../../services/token_service.dart';
+import '../../../services/uppercase_formatter.dart';
 
 class AddEditTokenScreen extends StatefulWidget {
   final DocumentSnapshot? token;
@@ -30,8 +35,8 @@ class _AddEditTokenScreenState extends State<AddEditTokenScreen> {
   @override
   void initState() {
     if (widget.token != null) {
-      tokenNoController!.text = widget.token!['tokenNo'];
-      jobNoController!.text = widget.token!['jobNo'];
+      tokenNoController!.text = widget.token!['tokenNo'].toString();
+      jobNoController!.text = widget.token!['jobNo'].toString();
       vehicleTypeController!.text = widget.token!['vehicleType'];
       vehicleNoController!.text = widget.token!['vehicleNo'];
       statusController!.text = widget.token!['status'];
@@ -40,6 +45,13 @@ class _AddEditTokenScreenState extends State<AddEditTokenScreen> {
       selectedServiceName = widget.token!['serviceName'];
       selectedUserName = widget.token!['userName'];
       selectedUserPhone = widget.token!['userPhone'];
+    } else {
+      generateTokenAndJobNo().then((value) {
+        setState(() {
+          tokenNoController!.text = value['tokenNo'].toString();
+          jobNoController!.text = value['jobNo'].toString();
+        });
+      });
     }
     super.initState();
   }
@@ -74,6 +86,43 @@ class _AddEditTokenScreenState extends State<AddEditTokenScreen> {
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
                           const SizedBox(height: 15.0),
+                          if (tokenNoController!.text.isNotEmpty)
+                            Row(
+                              children: [
+                                const Text(
+                                  "Token No: ",
+                                  style: TextStyle(
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.w500,
+                                    color: Colors.black87,
+                                  ),
+                                ),
+                                const SizedBox(
+                                  width: 10,
+                                ),
+                                if (tokenNoController!.text.isNotEmpty)
+                                  Text(
+                                    tokenNoController!.text,
+                                    style: TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.w800,
+                                      color: Theme.of(context).primaryColorDark,
+                                    ),
+                                  ),
+                                const Spacer(),
+                                Row(
+                                  children: [
+                                    const Text("Job No: "),
+                                    const SizedBox(
+                                      width: 20,
+                                    ),
+                                    if (jobNoController!.text.isNotEmpty)
+                                      Text(jobNoController!.text),
+                                  ],
+                                ),
+                              ],
+                            ),
+                          const SizedBox(height: 16.0),
                           selectServiceWidget(snapshot),
                           const SizedBox(height: 15.0),
                           if (selectedServiceId != null)
@@ -82,30 +131,19 @@ class _AddEditTokenScreenState extends State<AddEditTokenScreen> {
                                 selectUserWidget(),
                                 const SizedBox(height: 16.0),
                                 CustomTextField(
-                                  label: 'Token No *',
-                                  controller: tokenNoController,
-                                  onChanged: (String value) {},
-                                ),
-                                const SizedBox(height: 16.0),
-                                CustomTextField(
-                                  label: 'Job No *',
-                                  controller: jobNoController,
-                                  onChanged: (String value) {},
-                                ),
-                                const SizedBox(height: 16.0),
-                                CustomTextField(
-                                  label: 'Vehicle Type *',
+                                  label: 'Vehicle Type * (eg. Car, Bus, etc)',
                                   controller: vehicleTypeController,
                                   onChanged: (String value) {},
                                 ),
                                 const SizedBox(height: 16.0),
                                 CustomTextField(
-                                  label: 'Vehicle No *',
+                                  label: 'Vehicle No * (eg. MH-03-2349)',
                                   controller: vehicleNoController,
                                   onChanged: (String value) {},
+                                  inputformate: <TextInputFormatter>[
+                                    UpperCaseTextFormatter()
+                                  ],
                                 ),
-                                const SizedBox(height: 16.0),
-                                const SizedBox(height: 15.0),
                                 const SizedBox(height: 16.0),
                                 Row(
                                   children: [
@@ -115,45 +153,79 @@ class _AddEditTokenScreenState extends State<AddEditTokenScreen> {
                                     radioWidget('done', statusController!),
                                   ],
                                 ),
-                                const SizedBox(height: 16.0),
-                                ElevatedButton(
-                                  onPressed: () async {
-                                    if (selectedServiceId != null &&
-                                        tokenNoController!.text.isNotEmpty &&
-                                        jobNoController!.text.isNotEmpty &&
-                                        vehicleTypeController!
-                                            .text.isNotEmpty &&
-                                        vehicleNoController!.text.isNotEmpty &&
-                                        selectedUserId != null) {
-                                      Map<String, dynamic> tokenData = {
-                                        'serviceId': selectedServiceId,
-                                        'serviceName': selectedServiceName,
-                                        'userId': selectedUserId,
-                                        'userName': selectedUserName,
-                                        'userPhone': selectedUserPhone,
-                                        'tokenNo': tokenNoController!.text,
-                                        'jobNo': jobNoController!.text,
-                                        'vehicleType':
-                                            vehicleTypeController!.text,
-                                        'vehicleNo': vehicleNoController!.text,
-                                        'status': statusController!.text,
-                                      };
+                                const SizedBox(height: 20.0),
+                                SizedBox(
+                                  width: MediaQuery.of(context).size.width,
+                                  child: CustomButton(
+                                    onPressed: () async {
+                                      if (selectedServiceId != null &&
+                                          tokenNoController!.text.isNotEmpty &&
+                                          jobNoController!.text.isNotEmpty &&
+                                          vehicleTypeController!
+                                              .text.isNotEmpty &&
+                                          vehicleNoController!
+                                              .text.isNotEmpty &&
+                                          selectedUserId != null) {
+                                        Fluttertoast.showToast(
+                                            msg: "Saved",
+                                            toastLength: Toast.LENGTH_SHORT,
+                                            gravity: ToastGravity.CENTER,
+                                            timeInSecForIosWeb: 1,
+                                            backgroundColor:
+                                                // ignore: use_build_context_synchronously
+                                                Colors.green,
+                                            textColor: Colors.white,
+                                            fontSize: 16.0);
 
-                                      if (widget.token != null) {
-                                        await FirebaseFirestore.instance
-                                            .collection('tokens')
-                                            .doc(widget.token!.id)
-                                            .update(tokenData);
-                                      } else {
-                                        await FirebaseFirestore.instance
-                                            .collection('tokens')
-                                            .add(tokenData);
+                                        if (widget.token != null) {
+                                          Map<String, dynamic> tokenData = {
+                                            'serviceId': selectedServiceId,
+                                            'serviceName': selectedServiceName,
+                                            'userId': selectedUserId,
+                                            'userName': selectedUserName,
+                                            'userPhone': selectedUserPhone,
+                                            'tokenNo': tokenNoController!.text,
+                                            'jobNo': jobNoController!.text,
+                                            'vehicleType':
+                                                vehicleTypeController!.text,
+                                            'vehicleNo':
+                                                vehicleNoController!.text,
+                                            'status': statusController!.text,
+                                            'timeSpent':
+                                                widget.token!['timeSpent']
+                                          };
+                                          await FirebaseFirestore.instance
+                                              .collection('tokens')
+                                              .doc(widget.token!.id)
+                                              .update(tokenData);
+                                        } else {
+                                          Map<String, dynamic> tokenData = {
+                                            'serviceId': selectedServiceId,
+                                            'serviceName': selectedServiceName,
+                                            'userId': selectedUserId,
+                                            'userName': selectedUserName,
+                                            'userPhone': selectedUserPhone,
+                                            'tokenNo': int.parse(
+                                                tokenNoController!.text),
+                                            'jobNo': int.parse(
+                                                jobNoController!.text),
+                                            'vehicleType':
+                                                vehicleTypeController!.text,
+                                            'vehicleNo':
+                                                vehicleNoController!.text,
+                                            'status': statusController!.text,
+                                            'timeSpent': '-'
+                                          };
+                                          await FirebaseFirestore.instance
+                                              .collection('tokens')
+                                              .add(tokenData);
+                                        }
+
+                                        Navigator.pop(context);
                                       }
-
-                                      Navigator.pop(context);
-                                    }
-                                  },
-                                  child: const Text('Save'),
+                                    },
+                                    text: 'Save',
+                                  ),
                                 ),
                               ],
                             ),
@@ -177,7 +249,7 @@ class _AddEditTokenScreenState extends State<AddEditTokenScreen> {
           controller.text == status
               ? Icon(
                   Icons.radio_button_checked,
-                  color: Theme.of(context).primaryColor,
+                  color: Theme.of(context).primaryColorDark,
                   size: 18,
                 )
               : const Icon(
@@ -206,7 +278,7 @@ class _AddEditTokenScreenState extends State<AddEditTokenScreen> {
         contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
         enabledBorder: OutlineInputBorder(
           borderSide: BorderSide(
-            color: Theme.of(context).primaryColor,
+            color: Theme.of(context).primaryColorDark,
           ),
           borderRadius: const BorderRadius.all(Radius.circular(4.0)),
         ),
@@ -266,7 +338,7 @@ class _AddEditTokenScreenState extends State<AddEditTokenScreen> {
                         const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
                     enabledBorder: OutlineInputBorder(
                       borderSide: BorderSide(
-                        color: Theme.of(context).primaryColor,
+                        color: Theme.of(context).primaryColorDark,
                       ),
                       borderRadius:
                           const BorderRadius.all(Radius.circular(4.0)),

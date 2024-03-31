@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/services.dart';
+import 'package:fluttertoast/fluttertoast.dart';
+import 'package:tokenfcfs/widgets/custom_button.dart';
 import 'package:tokenfcfs/widgets/custom_text_field.dart';
 
 class AddEditUserScreen extends StatefulWidget {
@@ -80,11 +82,21 @@ class _AddEditUserScreenState extends State<AddEditUserScreen> {
                   radioWidget('user', roleController!),
                 ],
               ),
-              const SizedBox(height: 16.0),
-              ElevatedButton(
+              const SizedBox(height: 30.0),
+              CustomButton(
                 onPressed: () async {
                   if (nameController!.text.isNotEmpty &&
                       mobileController!.text.isNotEmpty) {
+                    Fluttertoast.showToast(
+                        msg: "Saved",
+                        toastLength: Toast.LENGTH_SHORT,
+                        gravity: ToastGravity.CENTER,
+                        timeInSecForIosWeb: 1,
+                        backgroundColor:
+                            // ignore: use_build_context_synchronously
+                            Colors.green,
+                        textColor: Colors.white,
+                        fontSize: 16.0);
                     Map<String, dynamic> userData = {
                       'name': nameController!.text,
                       'mobile': mobileController!.text,
@@ -103,10 +115,11 @@ class _AddEditUserScreenState extends State<AddEditUserScreen> {
                           .add(userData);
                     }
 
+                    // ignore: use_build_context_synchronously
                     Navigator.pop(context);
                   }
                 },
-                child: const Text('Save'),
+                text: 'Save',
               ),
             ],
           ),
@@ -127,7 +140,7 @@ class _AddEditUserScreenState extends State<AddEditUserScreen> {
           controller.text == status
               ? Icon(
                   Icons.radio_button_checked,
-                  color: Theme.of(context).primaryColor,
+                  color: Theme.of(context).primaryColorDark,
                   size: 18,
                 )
               : const Icon(

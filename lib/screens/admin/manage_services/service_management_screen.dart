@@ -33,52 +33,57 @@ class ServiceManagementScreen extends StatelessWidget {
                       padding: const EdgeInsets.all(4.0),
                       child: Card(
                         elevation: 2,
-                        child: ListTile(
-                          tileColor: Colors.white,
-                          title: Row(
-                            children: [
-                              const Icon(
-                                Icons.list,
-                                size: 14,
-                                color: Colors.black87,
-                              ),
-                              const SizedBox(
-                                width: 10,
-                              ),
-                              Text(
-                                service['name'],
-                                style: const TextStyle(
-                                  fontSize: 17,
-                                  fontWeight: FontWeight.w500,
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 8),
+                          child: ListTile(
+                            tileColor: Colors.white,
+                            title: Row(
+                              children: [
+                                const Icon(
+                                  Icons.circle,
+                                  size: 8,
                                   color: Colors.black87,
                                 ),
-                              ),
-                            ],
-                          ),
-                          subtitle: Padding(
-                            padding: const EdgeInsets.all(8.0),
-                            child: Text(service['desc']),
-                          ),
-                          trailing: IconButton(
-                            icon: Icon(
-                              Icons.delete,
-                              color: Colors.red.shade800,
+                                const SizedBox(
+                                  width: 10,
+                                ),
+                                Expanded(
+                                  child: Text(
+                                    service['name'],
+                                    style: const TextStyle(
+                                      fontSize: 17,
+                                      fontWeight: FontWeight.w500,
+                                      color: Colors.black87,
+                                    ),
+                                  ),
+                                ),
+                              ],
                             ),
-                            onPressed: () async {
-                              await FirebaseFirestore.instance
-                                  .collection('services')
-                                  .doc(service.id)
-                                  .delete();
+                            subtitle: Padding(
+                              padding: const EdgeInsets.all(8.0),
+                              child: Text(service['desc']),
+                            ),
+                            trailing: IconButton(
+                              icon: Icon(
+                                Icons.delete,
+                                color: Colors.red.shade800,
+                              ),
+                              onPressed: () async {
+                                await FirebaseFirestore.instance
+                                    .collection('services')
+                                    .doc(service.id)
+                                    .delete();
+                              },
+                            ),
+                            onTap: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                    builder: (context) =>
+                                        AddEditServiceScreen(service: service)),
+                              );
                             },
                           ),
-                          onTap: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                  builder: (context) =>
-                                      AddEditServiceScreen(service: service)),
-                            );
-                          },
                         ),
                       ),
                     );

@@ -1,5 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:fluttertoast/fluttertoast.dart';
+import 'package:tokenfcfs/widgets/custom_button.dart';
 import 'package:tokenfcfs/widgets/custom_text_field.dart';
 
 class AddEditServiceScreen extends StatefulWidget {
@@ -37,7 +39,7 @@ class _AddEditServiceScreenState extends State<AddEditServiceScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              const SizedBox(height: 40.0),
+              const SizedBox(height: 20.0),
               CustomTextField(
                 label: 'Name *',
                 controller: nameController,
@@ -49,10 +51,19 @@ class _AddEditServiceScreenState extends State<AddEditServiceScreen> {
                 onChanged: (String value) {},
                 controller: descController,
               ),
-              const SizedBox(height: 16.0),
-              const SizedBox(height: 16.0),
-              ElevatedButton(
+              const SizedBox(height: 20.0),
+              CustomButton(
                 onPressed: () async {
+                  Fluttertoast.showToast(
+                      msg: "Saved",
+                      toastLength: Toast.LENGTH_SHORT,
+                      gravity: ToastGravity.CENTER,
+                      timeInSecForIosWeb: 1,
+                      backgroundColor:
+                          // ignore: use_build_context_synchronously
+                          Colors.green,
+                      textColor: Colors.white,
+                      fontSize: 16.0);
                   if (nameController!.text.isNotEmpty &&
                       descController!.text.isNotEmpty) {
                     Map<String, dynamic> serviceData = {
@@ -74,7 +85,7 @@ class _AddEditServiceScreenState extends State<AddEditServiceScreen> {
                     Navigator.pop(context);
                   }
                 },
-                child: const Text('Save'),
+                text: 'Save',
               ),
             ],
           ),
