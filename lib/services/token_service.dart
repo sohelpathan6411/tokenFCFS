@@ -13,7 +13,7 @@ Future<Map<String, int>> generateTokenAndJobNo() async {
   int lastTokenNo = 1000;
 
   if (lastTokenSnapshot.docs.isNotEmpty) {
-    lastTokenNo = lastTokenSnapshot.docs.first['tokenNo'];
+    lastTokenNo = int.parse(lastTokenSnapshot.docs.first['tokenNo']);
   }
 
   // Increment the last tokenNo
@@ -29,7 +29,7 @@ Future<Map<String, int>> generateTokenAndJobNo() async {
   int lastJobNo = 2000;
 
   if (lastJobSnapshot.docs.isNotEmpty) {
-    lastJobNo = lastJobSnapshot.docs.first['jobNo'];
+    lastJobNo = int.parse(lastJobSnapshot.docs.first['jobNo']);
   }
 
   // Increment the last jobNo

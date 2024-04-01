@@ -249,7 +249,7 @@ class _OperatorDashboardScreenState extends State<OperatorDashboardScreen> {
                                                       child: Text(
                                                         selectedServiceId ==
                                                                 null
-                                                            ? "Please select service to get token"
+                                                            ? "Please select service to get tokens list"
                                                             : "No Tokens found for selected service",
                                                         textAlign:
                                                             TextAlign.start,
